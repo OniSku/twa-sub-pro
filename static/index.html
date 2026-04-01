@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Service</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Premium Subscription</h1>
+            <div id="user-info" class="user-info" style="display: none;">
+                <span id="user-name"></span>
+                <span id="premium-badge" class="badge" style="display: none;">Premium</span>
+            </div>
+        </header>
+
+        <main>
+            <section id="auth-section" class="section">
+                <h2>Verify Account</h2>
+                <button id="verify-btn" class="btn btn-primary">Verify with Telegram</button>
+                <div id="auth-error" class="error" style="display: none;"></div>
+            </section>
+
+            <section id="plans-section" class="section" style="display: none;">
+                <h2>Available Plans</h2>
+                <div id="plans-container" class="plans-grid">
+                    <!-- Plans will be loaded here -->
+                </div>
+            </section>
+
+            <section id="subscriptions-section" class="section" style="display: none;">
+                <h2>Your Subscriptions</h2>
+                <div id="subscriptions-container" class="subscriptions-list">
+                    <!-- Subscriptions will be loaded here -->
+                </div>
+            </section>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Subscription Service. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
