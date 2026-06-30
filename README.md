@@ -1,89 +1,166 @@
 # twa-sub-pro
 
-Полнофункциональный шаблон (MVP) сервиса подписок для Telegram Mini Apps. Проект демонстрирует интеграцию FastAPI с Telegram Web Apps API и организацию асинхронной работы с базой данных.
+A full-featured MVP template for a Telegram Mini App subscription service. The project demonstrates FastAPI integration with the Telegram Web Apps API and the organization of async database operations.
 
-## Стек технологий
+---
 
-**Backend:** Python 3.10+, FastAPI, SQLAlchemy 2.0 (Async), Pydantic v2.
+## Tech Stack
 
-**Database:** SQLite (библиотека aiosqlite).
+| Layer | Technology |
+|---|---|
+| Language | Python 3.10+ |
+| API Framework | FastAPI 0.104 |
+| ORM | SQLAlchemy 2.0 (async) |
+| Database | SQLite (via aiosqlite) |
+| Validation | Pydantic v2 |
+| Settings | pydantic-settings |
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Telegram Integration | Telegram Web App JS API |
+| Server | Uvicorn |
 
-**Frontend:** HTML5, CSS3, JavaScript (Vanilla JS), Telegram WebApp API.
+---
 
-## Инструкция по развертыванию
+## Project Structure
 
-### 1. Создание виртуального окружения и установка зависимостей
+```
+miniapp/
+├── app/
+│   ├── routes/
+│   │   ├── auth.py             # /api/auth — user verification & lookup
+│   │   └── subscriptions.py    # /api/subscriptions — plans & purchases
+│   ├── auth_utils.py           # Telegram initData parser
+│   ├── config.py               # Settings via pydantic-settings (.env)
+│   ├── database.py             # SQLAlchemy async engine & session
+│   ├── dependencies.py         # FastAPI dependency injection (get_db)
+│   ├── models.py               # ORM models: User, Plan, Subscription
+│   └── schemas.py              # Pydantic request/response schemas
+├── static/
+│   ├── index.html              # Single-page Telegram Mini App UI
+│   ├── app.js                  # Frontend logic, Telegram WebApp API calls
+│   └── styles.css              # Application styles
+├── main.py                     # FastAPI application entry point
+├── init_db.py                  # DB initialization & seed (Basic/Pro/Premium plans)
+├── requirements.txt
+└── .env.example
+```
+
+---
+
+## Key Features
+
+- **Telegram initData parsing** — server-side parsing of `initData` passed by the Telegram client, with a HMAC-SHA256 validation stub ready for production activation.
+- **Dynamic UI based on subscription status** — the frontend shows different sections depending on whether the user is verified and whether they hold an active subscription.
+- **Telegram MainButton integration** — uses the native Telegram `MainButton` component to drive the subscription purchase flow.
+- **Fully async database layer** — all database operations use SQLAlchemy 2.0 async sessions backed by `aiosqlite`; no blocking calls in request handlers.
+- **Subscription plan management** — seeded with three plans (Basic, Pro, Premium); plans are fetched dynamically from the database.
+- **Mock payment flow** — purchase endpoint simulates a payment and activates the user's premium status, making it easy to replace with a real payment provider.
+- **Auto table creation on startup** — `Base.metadata.create_all` runs on application startup via a FastAPI lifecycle event; no migration tooling required for local development.
+- **Health endpoint** — `GET /health` returns `{"status": "ok"}` for simple liveness checks.
+
+---
+
+## Installation & Setup
+
+### 1. Create virtual environment and install dependencies
 
 ```bash
 python -m venv .venv
+
+# Windows
 .venv\Scripts\activate
+
+# Linux / macOS
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-### 2. Настройка файла конфигурации
+### 2. Configure environment
 
-Скопируйте файл ".env.example" в ".env" и добавьте значение TELEGRAM_BOT_TOKEN:
+Copy the example file and fill in the required values:
 
 ```bash
+# Windows
 copy .env.example .env
+
+# Linux / macOS
+cp .env.example .env
 ```
 
-Отредактируйте файл ".env" и укажите Ваш токен бота:
+Edit `.env`:
 
-```
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-SECRET_KEY=your_secret_key_here
-```
+| Variable | Default | Description |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | — | Your Telegram Bot token from @BotFather (required) |
+| `SECRET_KEY` | `your-secret-key-change-in-production` | Secret used for internal signing |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./app.db` | SQLAlchemy database URL |
+| `DEBUG` | `True` | Debug mode flag |
 
-### 3. Инициализация базы данных
+### 3. Initialize the database
 
 ```bash
 python init_db.py
 ```
 
-Эта команда создаст таблицы в базе данных и добавит три примера планов подписок (Basic, Pro, Premium).
+This creates all tables and seeds three subscription plans: Basic, Pro, and Premium.
 
-### 4. Запуск сервера
+### 4. Start the server
 
 ```bash
 python main.py
 ```
 
-Приложение будет доступно по адресу "http://localhost:8000".
+The application will be available at `http://localhost:8000`.
 
-## Ключевые возможности
+To expose the app to the Telegram client during local development, use a tunneling tool such as ngrok:
 
-- **Верификация данных пользователя** - Проверка подлинности initData на стороне сервера с использованием криптографической валидации.
-- **Динамическое управление интерфейсом** - Отображение различных элементов интерфейса в зависимости от статуса подписки пользователя.
-- **Интеграция с системными компонентами Telegram** - Использование нативной кнопки MainButton для управления процессом покупки подписки.
-- **Асинхронная обработка запросов** - Все операции с базой данных и сетевые запросы выполняются асинхронно для оптимальной производительности.
-- **Mock-платежная система** - Реализована симуляция процесса покупки подписки для целей разработки и тестирования.
+```bash
+ngrok http 8000
+```
 
-## Безопасность
+Set the resulting HTTPS URL as your bot's Web App URL via @BotFather.
 
-Обратите внимание на следующее:
+---
 
-В текущей конфигурации функция валидации initData в файле "app/auth_utils.py" установлена в режим локального тестирования и не выполняет строгую криптографическую проверку. Для корректной работы в промышленной среде необходимо активировать полную валидацию HMAC-SHA256.
+## API Endpoints
 
-Файл ".env" содержит чувствительные данные и должен быть добавлен в ".gitignore". Никогда не коммитьте файл ".env" в систему контроля версий.
+### Authentication
 
-База данных "app.db" также должна быть исключена из системы контроля версий. Каждый разработчик создает свою копию базы данных локально при помощи команды "python init_db.py".
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/auth/verify` | Parse and verify user via Telegram `initData` |
+| `GET` | `/api/auth/user/{telegram_id}` | Get user information by Telegram ID |
 
-## API Эндпоинты
+### Subscription Management
 
-### Аутентификация
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/subscriptions/plans` | List all available subscription plans |
+| `GET` | `/api/subscriptions/plans/{plan_id}` | Get a specific plan by ID |
+| `POST` | `/api/subscriptions/purchase` | Process a subscription purchase |
+| `GET` | `/api/subscriptions/user/{user_id}` | Get all subscriptions for a user |
+| `GET` | `/api/subscriptions/active/{user_id}` | Get only active subscriptions for a user |
 
-- "POST /api/auth/verify" - Проверка и верификация пользователя через Telegram initData.
-- "GET /api/auth/user/{telegram_id}" - Получение информации о пользователе по Telegram ID.
+---
 
-### Управление подписками
+## Database Models
 
-- "GET /api/subscriptions/plans" - Получение списка всех доступных планов подписок.
-- "GET /api/subscriptions/plans/{plan_id}" - Получение информации о конкретном плане по ID.
-- "POST /api/subscriptions/purchase" - Обработка покупки подписки пользователем.
-- "GET /api/subscriptions/user/{user_id}" - Получение всех подписок пользователя.
-- "GET /api/subscriptions/active/{user_id}" - Получение активных подписок пользователя.
+| Model | Table | Description |
+|---|---|---|
+| `User` | `users` | Telegram user: `telegram_id`, `username`, `first_name`, `is_premium` |
+| `Plan` | `plans` | Subscription plan: `name`, `price`, `duration_days`, `features` |
+| `Subscription` | `subscriptions` | User subscription record: `plan_name`, `price`, `expires_at`, `is_active` |
 
-## Лицензия
+---
+
+## Security Notes
+
+- The `verify_telegram_init_data` function in `app/auth_utils.py` is currently set to **local testing mode** — it parses `initData` but does not perform the full HMAC-SHA256 cryptographic signature check. Before deploying to production, activate the complete signature validation using `TELEGRAM_BOT_TOKEN` as the HMAC key.
+- Never commit the `.env` file to version control. Add it to `.gitignore`.
+- The `app.db` SQLite file contains user data and should also be excluded from version control. Each developer generates their own local copy via `python init_db.py`.
+
+---
+
+## License
 
 MIT
