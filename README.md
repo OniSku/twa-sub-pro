@@ -1,5 +1,7 @@
 # twa-sub-pro
 
+> **NDA Notice**: The source code in this repository is a sanitized showcase version. The complete implementation, business logic, and client-specific configurations are proprietary and covered by a non-disclosure agreement.
+
 A full-featured MVP template for a Telegram Mini App subscription service. The project demonstrates FastAPI integration with the Telegram Web Apps API and the organization of async database operations.
 
 ---
